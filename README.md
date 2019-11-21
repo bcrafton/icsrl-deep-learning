@@ -13,6 +13,12 @@ This repository contains template code for the following deep learning tasks:
   <img src="./images/object_detection3.jpg" alt="object_detection1" width="256" height="128" />
 </p>
 
+<p float="left">
+  <img src="./images/semantic_seg1.jpg" alt="object_detection1" width="256" height="128" /> \
+  <img src="./images/semantic_seg2.jpg" alt="object_detection1" width="256" height="128" /> \
+  <img src="./images/semantic_seg3.jpg" alt="object_detection1" width="256" height="128" />
+</p>
+
 ## Getting Started
 
 It is intended to run on our lab servers
