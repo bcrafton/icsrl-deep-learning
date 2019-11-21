@@ -7,7 +7,7 @@ This repository contains template code for the following deep learning tasks:
 3. Semantic Segmentation
 4. Reinforcement Learning (Proximal Policy Optimization)
 
-![](./images/object_detection1.jpg?raw=true ) ![](./images/object_detection2.jpg?raw=true ) ![](./images/object_detection3.jpg?raw=true )
+![](./images/object_detection1.jpg?raw=true =128x128 ) ![](./images/object_detection2.jpg?raw=true =128x128 ) ![](./images/object_detection3.jpg?raw=true =128x128 )
 
 ## Getting Started
 
