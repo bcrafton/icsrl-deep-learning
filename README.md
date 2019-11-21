@@ -4,8 +4,6 @@
 This repository contains template code for the following deep learning tasks:
 1. Image Classification
 
-This is boring, no pictures needed
-
 2. Object Detection
 
 <p float="left">
