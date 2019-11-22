@@ -32,11 +32,10 @@ from lib.SegNet import SegNet
 
 ####################################
 
-exxact = 0
+exxact = 1
 if exxact:
-    assert (False)
-    val_path = ''
-    train_path = ''
+    val_path = '/home/bcrafton3/Data_SSD/datasets/cityscapes/val/'
+    train_path = '/home/bcrafton3/Data_SSD/datasets/cityscapes/train/'
 else:
     val_path   = '/usr/scratch/datasets/cityscapes/val/'
     train_path = '/usr/scratch/datasets/cityscapes/train/'
@@ -174,7 +173,7 @@ for ii in range(args.epochs):
             bot = bot / np.max(bot)
 
             img = np.concatenate((top, bot), axis=0)
-            plt.imsave('%d.jpg' % (jj + kk), img)
+            # plt.imsave('%d.jpg' % (jj + kk), img)
 
     print ('%d %f %f' % (jj, np.average(total_correct) / (args.batch_size * 480. * 480.), np.average(losses)))
             

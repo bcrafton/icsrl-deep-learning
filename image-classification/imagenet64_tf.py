@@ -18,10 +18,10 @@ if args.gpu >= 0:
     os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
     os.environ["CUDA_VISIBLE_DEVICES"]=str(args.gpu)
 
-exxact = 0
+exxact = 1
 if exxact:
-    val_path = '/home/bcrafton3/Data_SSD/64x64/tfrecord/val/'
-    train_path = '/home/bcrafton3/Data_SSD/64x64/tfrecord/train/'
+    val_path = '/home/bcrafton3/Data_SSD/datasets/imagenet64/tfrecord/val/'
+    train_path = '/home/bcrafton3/Data_SSD/datasets/imagenet64/tfrecord/train/'
 else:
     val_path = '/usr/scratch/datasets/imagenet64/tfrecord/val/'
     train_path = '/usr/scratch/datasets/imagenet64/tfrecord/train/'

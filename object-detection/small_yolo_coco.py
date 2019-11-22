@@ -19,8 +19,13 @@ if args.gpu >= 0:
     os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
     os.environ["CUDA_VISIBLE_DEVICES"]=str(args.gpu)
 
-weight_path  = '/usr/scratch/datasets/yolo_coco_weights.npy'
-dataset_path = '/usr/scratch/datasets/mscoco/'
+exxact = 1
+if exxact:
+    weight_path  = '/home/bcrafton3/Data_SSD/datasets/yolo_coco_weights.npy'
+    dataset_path = '/home/bcrafton3/Data_SSD/datasets/mscoco/'
+else:
+    weight_path  = '/usr/scratch/datasets/yolo_coco_weights.npy'
+    dataset_path = '/usr/scratch/datasets/mscoco/'
 
 ##############################################
 
