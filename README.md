@@ -44,7 +44,7 @@ Both of these are available on the server and can be configured by setting the e
 Georgia Institute of Technology, ICSRL (http://icsrl.ece.gatech.edu/)
 ```
 
-![Alt text](./images/icsrl.png?raw=true "Title")
+![Alt text](./README_src/icsrl.png?raw=true "Title")
 
 ## License
 
