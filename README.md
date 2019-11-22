@@ -22,7 +22,7 @@ This repository contains template code for the following deep learning tasks:
 
 4. Reinforcement Learning (Proximal Policy Optimization)
 
-<img src="./images/flappy_bird.gif" alt="flappy_bird" width="128" height="128" /> \
+<img src="./README_src/flappy_bird.gif" alt="flappy_bird" width="128" height="128" /> \
 
 ## Getting Started
 
