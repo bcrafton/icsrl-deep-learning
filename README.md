@@ -8,19 +8,21 @@ This repository contains template code for the following deep learning tasks:
 
 <p float="left">
   <img src="./images/object_detection1.jpg" alt="object_detection1" width="256" height="128" /> \
-  <img src="./images/object_detection2.jpg" alt="object_detection1" width="256" height="128" /> \
-  <img src="./images/object_detection3.jpg" alt="object_detection1" width="256" height="128" />
+  <img src="./images/object_detection2.jpg" alt="object_detection2" width="256" height="128" /> \
+  <img src="./images/object_detection3.jpg" alt="object_detection3" width="256" height="128" />
 </p>
 
 3. Semantic Segmentation
 
 <p float="left">
-  <img src="./images/semantic_seg1.jpg" alt="object_detection1" width="256" height="128" /> \
-  <img src="./images/semantic_seg2.jpg" alt="object_detection1" width="256" height="128" /> \
-  <img src="./images/semantic_seg3.jpg" alt="object_detection1" width="256" height="128" />
+  <img src="./images/semantic_seg1.jpg" alt="semantic_seg1" width="256" height="128" /> \
+  <img src="./images/semantic_seg2.jpg" alt="semantic_seg2" width="256" height="128" /> \
+  <img src="./images/semantic_seg3.jpg" alt="semantic_seg3" width="256" height="128" />
 </p>
 
 4. Reinforcement Learning (Proximal Policy Optimization)
+
+<img src="./images/flappy_bird.gif" alt="flappy_bird" width="128" height="128" /> \
 
 ## Getting Started
 
