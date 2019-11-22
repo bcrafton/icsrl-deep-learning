@@ -1,0 +1,37 @@
+
+extract zips so you have this:
+gtFine  gtFine_trainvaltest.zip  leftImg8bit  leftImg8bit_trainvaltest.zip
+
+run this:
+python cityscapes_gluon.py --download-dir /home/brian/Desktop/cityscapes/dataset/
+
+then you will see a good link here:
+/home/brian/Desktop/cityscapes/dataset/citys
+
+python cityscapes.py 
+Found 2975 images in the folder /home/brian/.mxnet/datasets/citys/leftImg8bit/train
+Found 500 images in the folder /home/brian/.mxnet/datasets/citys/leftImg8bit/val
+Training images: 2975
+Validation images: 500
+
+#####
+
+thought it would be more ? 
+> only 3k/5k images or w.e. ? and 11gb ? 
+
+#####
+
+want to use the network that used first 8 conv layers from VGG I think.
+the one after the network that converted the fc layers to conv layers.
+what is the loss function ? 
+
+you want SegNet ... it uses softmax-cross-entropy.
+> we have this paper downloaded.
+
+there is 30 classes, so how do we classify ? 
+> 480x480x30 ?
+> vgg largest activation layer is 224x224x64 ... so i guess this would fit ... must have tiny batches tho.
+
+#####
+
+
