@@ -13,8 +13,9 @@ import json
 
 #########################################
 
-exxact = 1
-icsrl2 = 0
+'''
+exxact = 0
+icsrl2 = 1
 
 if exxact:
     path = '/home/bcrafton3/Data_HDD/mscoco/'
@@ -22,6 +23,7 @@ elif icsrl2:
     path = '/usr/scratch/bcrafton/mscoco/'
 else:
     assert(False)
+'''
 
 #########################################
 
@@ -41,7 +43,7 @@ def get_images(path):
 
 # we need a class remap table because COCO has 80 classes ... but the ids are not ordered.
 # max(class_id) = 90 ... even though there are only 80 classes.
-def get_cat_table(json_filename):
+def get_cat_table(path, json_filename):
     table = {}
 
     json_file = open(json_filename)
@@ -63,7 +65,7 @@ def get_cat_table(json_filename):
 
 #########################################
 
-def get_det_table(json_filename):
+def get_det_table(path, json_filename):
     table = {}
 
     json_file = open(json_filename)
@@ -91,11 +93,9 @@ def get_det_table(json_filename):
 def preprocess(filename, det_table, cat_table):
     # image
     image = cv2.imread(filename)
-    assert(not np.any(np.isnan(image)))
     shape = np.shape(image)
     (h, w, _) = shape
     image = cv2.resize(image, (448, 448))
-    assert(not np.any(np.isnan(image)))
     image = np.reshape(image, [1, 448, 448, 3])
     assert(not np.any(np.isnan(image)))
     scale_w = 448 / w
@@ -178,46 +178,18 @@ def fill_queue(images, det_table, cat_table, q):
 
 class LoadCOCO:
 
-    def __init__(self, batch_size):
+    def __init__(self, batch_size, path):
         self.batch_size = batch_size
+        self.path = path
 
-        self.cat_table = get_cat_table(path + 'train_labels/instances_train2014.json')
+        self.cat_table = get_cat_table(self.path, self.path + 'train_labels/instances_train2014.json')
 
-        self.train_images = sorted(get_images(path + 'train_images'))
-        self.train_det_table = get_det_table(path + 'train_labels/instances_train2014.json')
+        self.train_images = sorted(get_images(self.path + 'train_images'))
+        self.train_det_table = get_det_table(self.path, self.path + 'train_labels/instances_train2014.json')
 
         self.q = queue.Queue(maxsize=128)
         thread = threading.Thread(target=fill_queue, args=(self.train_images, self.train_det_table, self.cat_table, self.q))
         thread.start()
-
-    '''
-    def pop(self):
-        return self.q.get()
-
-    def empty(self):
-        return self.q.empty()
-
-    def full(self):
-        return self.q.full()
-    '''
-
-    '''
-    def pop(self):
-        assert(not self.empty())
-
-        images = []; coords = []; objs = []; no_objs = []; cats = []
-        for b in range(self.batch_size):
-            image, (coord, obj, no_obj, cat) = loader.pop()
-            images.append(image); coords.append(coord); objs.append(obj); no_objs.append(no_obj); cats.append(cat)
-
-        images = np.concatenate(images, axis=0)
-        coords = np.concatenate(coords, axis=0)
-        objs = np.concatenate(objs, axis=0)
-        no_objs = np.concatenate(no_objs, axis=0)
-        cats = np.concatenate(cats, axis=0)
-
-        return images, (coords, objs, no_objs, cats)
-    '''
 
     def pop(self):
         # pred   = [4, -1, 7, 7, 2 * 5 + 80]

@@ -12,20 +12,20 @@ parser.add_argument('--batch_size', type=int, default=32)
 parser.add_argument('--lr', type=float, default=3e-3)
 parser.add_argument('--eps', type=float, default=1.)
 parser.add_argument('--gpu', type=int, default=0)
-parser.add_argument('--name', type=str, default='darknet_weights')
+parser.add_argument('--name', type=str, default='imagenet224')
 args = parser.parse_args()
 
 if args.gpu >= 0:
     os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
     os.environ["CUDA_VISIBLE_DEVICES"]=str(args.gpu)
 
-exxact = 1
+exxact = 0
 if exxact:
     val_path = '/home/bcrafton3/Data_SSD/ILSVRC2012/val/'
     train_path = '/home/bcrafton3/Data_SSD/ILSVRC2012/train/'
 else:
-    val_path = '/usr/scratch/bcrafton/ILSVRC2012/val/'
-    train_path = '/usr/scratch/bcrafton/ILSVRC2012/train/'
+    val_path = '/usr/scratch/datasets/imagenet224/val/'
+    train_path = '/usr/scratch/datasets/imagenet224/train/'
 
 val_labels = './imagenet_labels/validation_labels.txt'
 train_labels = './imagenet_labels/train_labels.txt'
@@ -219,91 +219,68 @@ val_iterator = val_dataset.make_initializable_iterator()
 
 ###############################################################
 
-def max_pool(x, s):
-    return tf.nn.max_pool(x, ksize=[1,s,s,1], strides=[1,s,s,1], padding='SAME')
+def batch_norm(x, f, name):
+    gamma = tf.Variable(np.ones(shape=f), dtype=tf.float32, name=name+'_gamma')
+    beta = tf.Variable(np.zeros(shape=f), dtype=tf.float32, name=name+'_beta')
+    mean = tf.reduce_mean(x, axis=[0,1,2])
+    _, var = tf.nn.moments(x - mean, axes=[0,1,2])
+    bn = tf.nn.batch_normalization(x=x, mean=mean, variance=var, offset=beta, scale=gamma, variance_epsilon=1e-3)
+    return bn
 
-def conv(x, f, p, w, name, trainable=False):
-    fw, fh, fi, fo = f
-
-    assert(w is not None)
-    if w is not None:
-        print ('loading %s' % (name))
-        filters_np = w[name]
-        bias_np    = w[name + '_bias']
-    else:
-        filters_np = init_filters(size=[fw, fh, fi, fo], init='glorot_uniform')
-        bias_np    = np.zeros(shape=fo)
-
-    if not (np.shape(filters_np) == f):
-        print (np.shape(filters_np), f)
-        assert(np.shape(filters_np) == f)
-
-    filters = tf.Variable(filters_np, dtype=tf.float32, trainable=trainable)
-    bias    = tf.Variable(bias_np,    dtype=tf.float32, trainable=trainable)
-
-    conv = tf.nn.conv2d(x, filters, [1,p,p,1], 'SAME') + bias
-    relu = tf.nn.leaky_relu(conv, 0.1)
-
+def block(x, f1, f2, p, name):
+    filters = tf.Variable(init_filters(size=[3,3,f1,f2], init='alexnet'), dtype=tf.float32, name=name+'_conv')
+    conv = tf.nn.conv2d(x, filters, [1,p,p,1], 'SAME')
+    bn   = batch_norm(conv, f2, name+'_bn')
+    relu = tf.nn.relu(bn)
     return relu
 
-def dense(x, size, w, name):
-    input_size, output_size = size
+def mobile_block(x, f1, f2, p, name):
+    filters1 = tf.Variable(init_filters(size=[3,3,f1,1], init='alexnet'), dtype=tf.float32, name=name+'_conv_dw')
+    filters2 = tf.Variable(init_filters(size=[1,1,f1,f2], init='alexnet'), dtype=tf.float32, name=name+'_conv_pw')
 
-    if w is not None:
-        print ('loading %s' % (name))
-        weights_np = w[name]
-        bias_np    = w[name + '_bias']
-    else:
-        weights_np = init_matrix(size=size, init='glorot_uniform')
-        bias_np    = np.zeros(shape=output_size)
+    conv1 = tf.nn.depthwise_conv2d(x, filters1, [1,p,p,1], 'SAME')
+    bn1   = batch_norm(conv1, f1, name+'_bn_dw')
+    relu1 = tf.nn.relu(bn1)
 
-    w = tf.Variable(weights_np, dtype=tf.float32)
-    b  = tf.Variable(bias_np, dtype=tf.float32)
-    out = tf.matmul(x, w) + b
-    return out
+    conv2 = tf.nn.conv2d(relu1, filters2, [1,1,1,1], 'SAME')
+    bn2   = batch_norm(conv2, f2, name+'_bn_pw')
+    relu2 = tf.nn.relu(bn2)
+
+    return relu2
 
 ###############################################################
 
-weights = np.load('small_yolo_weights.npy', allow_pickle=True).item()
+batch_size = tf.placeholder(tf.int32, shape=())
+lr = tf.placeholder(tf.float32, shape=())
 
-###############################################################
+bn     = batch_norm(features, 3, 'bn0')                   # 224
 
-x = (features / 255.0) * 2.0 - 1.0                                # 448
+block1 = block(bn, 3, 32, 2, 'block1')                    # 224
 
-conv1 = conv(x, (7,7,3,64), 2, weights, 'conv_1')                 # 448
-pool1 = max_pool(conv1, 2)                                        # 224
-conv2 = conv(pool1, (3,3,64,192), 1, weights, 'conv_2')           # 112
-pool2 = max_pool(conv2, 2)                                        # 112
+block2 = mobile_block(block1, 32, 64, 1, 'block2')        # 112
+block3 = mobile_block(block2, 64, 128, 2, 'block3')       # 112
 
-conv3 = conv(pool2, (1,1,192,128), 1, weights, 'conv_3')          # 56
-conv4 = conv(conv3, (3,3,128,256), 1, weights, 'conv_4')          # 56
-conv5 = conv(conv4, (1,1,256,256), 1, weights, 'conv_5')          # 56
-conv6 = conv(conv5, (3,3,256,512), 1, weights, 'conv_6')          # 56
-pool3 = max_pool(conv6, 2)                                        # 56
+block4 = mobile_block(block3, 128, 128, 1, 'block4')      # 56
+block5 = mobile_block(block4, 128, 256, 2, 'block5')      # 56
 
-conv7 = conv(pool3,   (1,1,512,256),  1, weights, 'conv_7')       # 28
-conv8 = conv(conv7,   (3,3,256,512),  1, weights, 'conv_8')       # 28
-conv9 = conv(conv8,   (1,1,512,256),  1, weights, 'conv_9')       # 28
-conv10 = conv(conv9,  (3,3,256,512),  1, weights, 'conv_10')      # 28
-conv11 = conv(conv10, (1,1,512,256),  1, weights, 'conv_11')      # 28
-conv12 = conv(conv11, (3,3,256,512),  1, weights, 'conv_12')      # 28
-conv13 = conv(conv12, (1,1,512,256),  1, weights, 'conv_13')      # 28
-conv14 = conv(conv13, (3,3,256,512),  1, weights, 'conv_14')      # 28
-conv15 = conv(conv14, (1,1,512,512),  1, weights, 'conv_15')      # 28
-conv16 = conv(conv15, (3,3,512,1024), 1, weights, 'conv_16')      # 28
-pool4 = max_pool(conv16, 2)                                       # 28
+block6 = mobile_block(block5, 256, 256, 1, 'block6')      # 28
+block7 = mobile_block(block6, 256, 512, 2, 'block7')      # 28
 
-conv17 = conv(pool4,  (1,1,1024,512), 1, weights, 'conv_17')      # 14
-conv18 = conv(conv17, (3,3,512,1024), 1, weights, 'conv_18')      # 14
-conv19 = conv(conv18, (1,1,1024,512), 1, weights, 'conv_19')      # 14
-conv20 = conv(conv19, (3,3,512,1024), 1, weights, 'conv_20')      # 14
+block8 = mobile_block(block7, 512, 512, 1, 'block8')      # 14
+block9 = mobile_block(block8, 512, 512, 1, 'block9')      # 14
+block10 = mobile_block(block9, 512, 512, 1, 'block10')    # 14
+block11 = mobile_block(block10, 512, 512, 1, 'block11')   # 14
+block12 = mobile_block(block11, 512, 512, 1, 'block12')   # 14
 
-conv21 = conv(conv20, (3,3,1024,1024), 1, weights, 'conv_21', trainable=True)     # 14
-conv22 = conv(conv21, (3,3,1024,1024), 2, weights, 'conv_22', trainable=True)     # 14
-conv23 = conv(conv22, (3,3,1024,1024), 1, weights, 'conv_23', trainable=True)     # 7
-conv24 = conv(conv23, (3,3,1024,1024), 1, weights, 'conv_24', trainable=True)     # 7
+block13 = mobile_block(block12, 512, 1024, 2, 'block13')  # 14
+block14 = mobile_block(block13, 1024, 1024, 1, 'block14') # 7
 
+pool   = tf.nn.avg_pool(block14, ksize=[1,7,7,1], strides=[1,7,7,1], padding='SAME')
+flat   = tf.reshape(pool, [batch_size, 1024])
 
+mat1   = tf.Variable(init_matrix(size=(1024, 1000), init='alexnet'), dtype=tf.float32, name='fc1')
+bias1  = tf.Variable(np.zeros(shape=1000), dtype=tf.float32, name='fc1_bias')
+fc1    = tf.matmul(flat, mat1) + bias1
 
 ###############################################################
 
@@ -334,8 +311,8 @@ for p in params:
 assert (False)
 '''
 
-[w] = sess.run([weights], feed_dict={})
-np.save(args.name, w)
+# [w] = sess.run([weights], feed_dict={})
+# np.save(args.name, w)
 
 ###############################################################
 

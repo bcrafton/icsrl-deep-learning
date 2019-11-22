@@ -23,8 +23,8 @@ if exxact:
     val_path = '/home/bcrafton3/Data_SSD/64x64/tfrecord/val/'
     train_path = '/home/bcrafton3/Data_SSD/64x64/tfrecord/train/'
 else:
-    val_path = '/usr/scratch/bcrafton/64x64/tfrecord/val/'
-    train_path = '/usr/scratch/bcrafton/64x64/tfrecord/train/'
+    val_path = '/usr/scratch/datasets/imagenet64/tfrecord/val/'
+    train_path = '/usr/scratch/datasets/imagenet64/tfrecord/train/'
 
 ##############################################
 

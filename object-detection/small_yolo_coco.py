@@ -19,6 +19,9 @@ if args.gpu >= 0:
     os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
     os.environ["CUDA_VISIBLE_DEVICES"]=str(args.gpu)
 
+weight_path  = '/usr/scratch/datasets/yolo_coco_weights.npy'
+dataset_path = '/usr/scratch/datasets/mscoco/'
+
 ##############################################
 
 import keras
@@ -36,7 +39,6 @@ from bc_utils.init_tensor import init_matrix
 
 from LoadCOCO import LoadCOCO
 from yolo_loss import yolo_loss
-from draw_boxes import draw_boxes
 
 from collections import deque
 
@@ -50,8 +52,8 @@ def write(text):
 
 ##############################################
 
-loader = LoadCOCO(batch_size=args.batch_size)
-weights = np.load('small_yolo_weights.npy', allow_pickle=True).item()
+loader = LoadCOCO(batch_size=args.batch_size, path=dataset_path)
+weights = np.load(weight_path, allow_pickle=True).item()
 
 ###############################################################
 
@@ -199,14 +201,6 @@ while True:
     if not loader.empty():
         image, det = loader.pop()
         coord, obj, no_obj, cat, vld = det
-
-        # wtf why is this not triggering ? 
-        # because we force xywhc to be within 0 and 1
-        '''
-        if (np.any(coord < 0.) or np.any(coord > 1.1)):
-            print (coord)
-            assert(not (np.any(coord < 0.) or np.any(coord > 1.1)))
-        '''    
 
         lr = np.clip(lr_slope * batch, 1e-3, 1e-2)
 

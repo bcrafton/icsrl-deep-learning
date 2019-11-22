@@ -32,8 +32,14 @@ from lib.SegNet import SegNet
 
 ####################################
 
-train_path = '/usr/scratch/bcrafton/cityscapes/train'
-val_path = '/usr/scratch/bcrafton/cityscapes/val'
+exxact = 0
+if exxact:
+    assert (False)
+    val_path = ''
+    train_path = ''
+else:
+    val_path   = '/usr/scratch/datasets/cityscapes/val/'
+    train_path = '/usr/scratch/datasets/cityscapes/train/'
 
 ####################################
 
